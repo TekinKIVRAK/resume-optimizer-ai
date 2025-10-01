@@ -66,7 +66,8 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
     formData.append('file', file);
 
     try {
-      const response = await axios.post('/api/resume/analyze', formData, {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const response = await axios.post(`${apiBaseUrl}/api/resume/analyze`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
