@@ -1,20 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
-
-const MAX_ATTEMPTS = 3;
-const STORAGE_KEY = 'resume_analyzer_attempts';
 
 function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
-  const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    // Check remaining attempts on component mount
-    const attempts = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
-    setAttemptsLeft(MAX_ATTEMPTS - attempts);
-  }, []);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -65,12 +55,6 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
   };
 
   const handleUpload = async () => {
-    // Check attempts limit
-    if (attemptsLeft <= 0) {
-      onError('You have reached the maximum number of free analyses (3). Please contact us for more.');
-      return;
-    }
-
     if (!file) {
       onError('Please select a file');
       return;
@@ -91,12 +75,6 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
       });
 
       if (response.data.success) {
-        // Increment attempt counter on success
-        const currentAttempts = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
-        const newAttempts = currentAttempts + 1;
-        localStorage.setItem(STORAGE_KEY, newAttempts.toString());
-        setAttemptsLeft(MAX_ATTEMPTS - newAttempts);
-
         onAnalysisComplete(response.data.data);
       } else {
         onError(response.data.message || 'Analysis failed');
@@ -164,15 +142,15 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
             </div>
           ) : (
             <div>
-              <p className="text-lg text-gray-700">
+              <p className="text-lg text-gray-700 mb-4">
                 Drag and drop your resume or
               </p>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-2 text-gray-900 hover:text-gray-700 font-medium underline"
+                className="inline-block px-6 py-3 bg-blue-500 text-white text-base font-semibold rounded-lg hover:bg-blue-600 transition-colors"
               >
-                select file
+                Select File
               </button>
             </div>
           )}
@@ -225,16 +203,6 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
           <strong>Note:</strong> Your resume will be analyzed by our AI system and
           detailed feedback will be provided. Analysis may take 10-30 seconds.
         </p>
-        {attemptsLeft > 0 && (
-          <p className="text-sm text-blue-700 mt-2">
-            <strong>Free analyses remaining:</strong> {attemptsLeft} of {MAX_ATTEMPTS}
-          </p>
-        )}
-        {attemptsLeft === 0 && (
-          <p className="text-sm text-red-700 mt-2 font-semibold">
-            You have used all your free analyses. Contact us for more.
-          </p>
-        )}
       </div>
     </div>
   );
