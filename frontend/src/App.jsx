@@ -73,12 +73,12 @@ function App() {
                     />
                   </svg>
                 </div>
-                <div className="ml-3">
+                <div className="ml-3 flex-1">
                   <h3 className="text-sm font-medium text-red-800">Error</h3>
                   <p className="mt-1 text-sm text-red-700">{error}</p>
                   <button
                     onClick={handleReset}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium"
+                    className="mt-4 px-6 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-colors"
                   >
                     Try Again
                   </button>
