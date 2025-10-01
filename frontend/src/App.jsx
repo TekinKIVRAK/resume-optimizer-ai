@@ -38,7 +38,7 @@ function App() {
             🎯 Resume Optimizer AI
           </h1>
           <p className="text-lg text-gray-600">
-            Analyze and improve your resume with Claude AI
+            Analyze and improve your resume with AI
           </p>
         </div>
 
@@ -94,15 +94,7 @@ function App() {
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500">
           <p>
-            Powered by{' '}
-            <a
-              href="https://anthropic.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-600 hover:text-primary-700"
-            >
-              Claude AI
-            </a>
+            Powered by AI technology
           </p>
         </div>
       </div>

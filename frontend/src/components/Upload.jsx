@@ -56,7 +56,7 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
 
   const handleUpload = async () => {
     if (!file) {
-      onError('Please select a file');
+      onError('Please select a file first');
       return;
     }
 
@@ -165,8 +165,8 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
       <div className="mt-6">
         <button
           onClick={handleUpload}
-          disabled={!file || loading}
-          className="btn-primary w-full"
+          disabled={loading}
+          className="w-full py-3 px-6 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <span className="flex items-center justify-center">
