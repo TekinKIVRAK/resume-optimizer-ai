@@ -1,10 +1,20 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+
+const MAX_ATTEMPTS = 3;
+const STORAGE_KEY = 'resume_analyzer_attempts';
 
 function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    // Check remaining attempts on component mount
+    const attempts = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+    setAttemptsLeft(MAX_ATTEMPTS - attempts);
+  }, []);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -55,6 +65,12 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
   };
 
   const handleUpload = async () => {
+    // Check attempts limit
+    if (attemptsLeft <= 0) {
+      onError('You have reached the maximum number of free analyses (3). Please contact us for more.');
+      return;
+    }
+
     if (!file) {
       onError('Please select a file');
       return;
@@ -75,6 +91,12 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
       });
 
       if (response.data.success) {
+        // Increment attempt counter on success
+        const currentAttempts = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+        const newAttempts = currentAttempts + 1;
+        localStorage.setItem(STORAGE_KEY, newAttempts.toString());
+        setAttemptsLeft(MAX_ATTEMPTS - newAttempts);
+
         onAnalysisComplete(response.data.data);
       } else {
         onError(response.data.message || 'Analysis failed');
@@ -86,7 +108,7 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
       } else if (error.response) {
         onError(error.response.data.message || 'An error occurred');
       } else if (error.request) {
-        onError('Could not connect to server. Check if backend is running.');
+        onError('AI analysis failed: Connection error.');
       } else {
         onError('An unexpected error occurred');
       }
@@ -148,7 +170,7 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-2 text-primary-600 hover:text-primary-700 font-medium"
+                className="mt-2 text-gray-900 hover:text-gray-700 font-medium underline"
               >
                 select file
               </button>
@@ -200,9 +222,19 @@ function Upload({ onAnalysisComplete, onAnalysisStart, onError, loading }) {
       {/* Info */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>Note:</strong> Your resume will be analyzed with Claude AI and
+          <strong>Note:</strong> Your resume will be analyzed by our AI system and
           detailed feedback will be provided. Analysis may take 10-30 seconds.
         </p>
+        {attemptsLeft > 0 && (
+          <p className="text-sm text-blue-700 mt-2">
+            <strong>Free analyses remaining:</strong> {attemptsLeft} of {MAX_ATTEMPTS}
+          </p>
+        )}
+        {attemptsLeft === 0 && (
+          <p className="text-sm text-red-700 mt-2 font-semibold">
+            You have used all your free analyses. Contact us for more.
+          </p>
+        )}
       </div>
     </div>
   );
