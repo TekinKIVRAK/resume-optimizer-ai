@@ -1,4 +1,4 @@
-import pdf from 'pdf-parse';
+import pdf from 'pdf-parse-fork';
 import mammoth from 'mammoth';
 import fs from 'fs/promises';
 
