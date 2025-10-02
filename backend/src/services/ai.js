@@ -1,8 +1,18 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
-});
+/**
+ * Get or create Anthropic client instance
+ * @returns {Anthropic} - Anthropic client
+ */
+function getAnthropicClient() {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is not configured');
+  }
+
+  return new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY
+  });
+}
 
 /**
  * Analyze resume using Claude AI
@@ -11,9 +21,7 @@ const anthropic = new Anthropic({
  */
 export async function analyzeResume(resumeText) {
   try {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY is not configured');
-    }
+    const anthropic = getAnthropicClient();
 
     const prompt = `You are a professional CV/Resume analysis expert. Analyze the following resume and provide detailed feedback.
 
@@ -51,7 +59,7 @@ Please provide your response in JSON format:
 }`;
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-haiku-20240307',
       max_tokens: 2048,
       temperature: 0.7,
       messages: [

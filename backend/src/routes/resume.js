@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { unlink } from 'fs/promises';
 import { validateFile } from '../utils/validator.js';
 import { parseResume } from '../services/parser.js';
 import { analyzeResume, getATSTips } from '../services/ai.js';
@@ -32,20 +33,36 @@ const upload = multer({
 });
 
 /**
+ * Helper function to delete uploaded file
+ */
+async function cleanupFile(filePath) {
+  try {
+    await unlink(filePath);
+    console.log(`Cleaned up file: ${filePath}`);
+  } catch (error) {
+    console.error(`Failed to cleanup file: ${filePath}`, error);
+  }
+}
+
+/**
  * POST /api/resume/analyze
  * Analyze uploaded resume
  */
 router.post('/analyze', upload.single('file'), async (req, res) => {
+  let filePath = null;
+
   try {
     // Validate file
     const validation = validateFile(req.file);
     if (!validation.valid) {
+      if (req.file) await cleanupFile(req.file.path);
       return res.status(400).json({
         success: false,
         message: validation.error
       });
     }
 
+    filePath = req.file.path;
     console.log(`Processing resume: ${req.file.originalname}`);
 
     // Parse resume
@@ -54,6 +71,9 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
 
     // Analyze with AI
     const analysis = await analyzeResume(resumeText);
+
+    // Cleanup file after successful processing
+    await cleanupFile(filePath);
 
     // Return results
     res.json({
@@ -68,6 +88,10 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
     });
   } catch (error) {
     console.error('Resume analysis error:', error);
+
+    // Cleanup file on error
+    if (filePath) await cleanupFile(filePath);
+
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to analyze resume'
